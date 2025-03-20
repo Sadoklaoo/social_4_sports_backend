@@ -1,0 +1,32 @@
+
+services:
+  app:
+    build: .
+    container_name: social4sports-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db 
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_NAME=social4sports
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    container_name: social4sports-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: social4sports
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -1,0 +1,41 @@
+{
+  "name": "social_4_sports_backend",
+  "version": "1.0.0",
+  "description": "![Node.js](https://img.shields.io/badge/Node.js-18.x-green?logo=node.js)  ![Express.js](https://img.shields.io/badge/Express.js-4.x-black?logo=express)  ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql) ![Redis](https://img.shields.io/badge/Redis-7.x-red?logo=redis) ![License](https://img.shields.io/badge/license-MIT-brightgreen)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sadoklaoo/social_4_sports_backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sadoklaoo/social_4_sports_backend/issues"
+  },
+  "homepage": "https://github.com/Sadoklaoo/social_4_sports_backend#readme",
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.13.10",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@types/helmet": "^0.0.48",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "helmet": "^8.1.0",
+    "pg": "^8.14.1",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.21"
+  }
+}
