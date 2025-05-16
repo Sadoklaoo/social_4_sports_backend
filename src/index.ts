@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import matchRoutes from './routes/matches';
+import userRoutes from './routes/user';
 // Swagger imports
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
@@ -47,6 +48,8 @@ app.use(
 );
 // --------------------------------------------------------------------
 app.use('/api/matches', matchRoutes);
+app.use('/api/users', userRoutes);
+
 app.get('/', (req: Request, res: Response) => {
   res.send('Social4Sports API Running 🚀');
 });
