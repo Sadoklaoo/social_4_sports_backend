@@ -1,40 +1,68 @@
-import express, { Application, Request, Response } from "express";
-import cors from "cors";
-import helmet from "helmet";
-import "reflect-metadata";
-import { DataSource } from "typeorm";
-import dotenv from "dotenv";
+// src/index.ts
+import express, { Application, Request, Response } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import matchRoutes from './routes/matches';
+// Swagger imports
+import swaggerUi from 'swagger-ui-express';
+import swaggerJSDoc from 'swagger-jsdoc';
 
 dotenv.config();
 
-const app = express();
+const app: Application = express();
 app.use(express.json());
 app.use(cors());
 app.use(helmet());
 
-// TypeORM DataSource Configuration
-const AppDataSource = new DataSource({
-  type: "postgres", // Change to your DB type (e.g., mysql, sqlite)
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT) || 5432,
-  username: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "password",
-  database: process.env.DB_NAME || "social4sports",
-  entities: ["src/entities/*.ts"], // Adjust paths based on your setup
-  synchronize: true, // Set to false in production
-  logging: true,
-});
+// --- Swagger setup --------------------------------------------------
+// 1) Basic Swagger definition (OpenAPI 3.0)
+const swaggerDefinition = {
+  openapi: '3.0.0',
+  info: {
+    title: 'Social4Sports API',
+    version: '1.0.0',
+    description: 'Interactive API documentation for the Social4Sports backend',
+  },
+  servers: [
+    { url: `http://localhost:${process.env.PORT || 3000}` }
+  ],
+};
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Social4Sports API Running 🚀");
+// 2) Options for swaggerJSDoc – point `apis` to your route & model files
+const swaggerOptions = {
+  swaggerDefinition,
+  apis: ['./src/routes/**/*.ts', './src/models/**/*.ts'],
+};
+
+// 3) Initialize swagger-jsdoc → produces the OpenAPI spec
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
+// 4) Serve Swagger UI at /api-docs
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, { explorer: true })
+);
+// --------------------------------------------------------------------
+app.use('/api/matches', matchRoutes);
+app.get('/', (req: Request, res: Response) => {
+  res.send('Social4Sports API Running 🚀');
 });
 
 const PORT = process.env.PORT || 3000;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/social4sports';
 
-// Initialize Database & Start Server
-AppDataSource.initialize()
+mongoose
+  .connect(MONGODB_URI)
   .then(() => {
-    console.log("✅ Database connected successfully");
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    console.log('✅ MongoDB connected');
+    app.listen(PORT, () =>
+      console.log(`🚀 Server running on port ${PORT} — docs: http://localhost:${PORT}/api-docs`)
+    );
   })
-  .catch((err) => console.error("❌ Database connection error:", err));
+  .catch((err) => {
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1);
+  });
