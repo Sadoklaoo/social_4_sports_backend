@@ -8,10 +8,14 @@ services:
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongo:27017/social4sports
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
     volumes:
       - .:/usr/src/app
     depends_on:
       - mongo
+    env_file:
+      - .env
 
   mongo:
     image: mongo:7.0

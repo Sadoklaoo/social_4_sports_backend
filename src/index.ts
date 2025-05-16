@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import matchRoutes from './routes/matches';
 import userRoutes from './routes/user';
+import authRoutes from './routes/auth';
 // Swagger imports
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
@@ -18,6 +19,8 @@ app.use(cors());
 app.use(helmet());
 
 // --- Swagger setup --------------------------------------------------
+const PORT = process.env.PORT || 3000;
+
 // 1) Basic Swagger definition (OpenAPI 3.0)
 const swaggerDefinition = {
   openapi: '3.0.0',
@@ -26,9 +29,10 @@ const swaggerDefinition = {
     version: '1.0.0',
     description: 'Interactive API documentation for the Social4Sports backend',
   },
-  servers: [
-    { url: `http://localhost:${process.env.PORT || 3000}` }
-  ],
+  servers: [    {
+      url: `http://localhost:${PORT}`,
+      description: 'Local development server (IPv4)'
+    }],
 };
 
 // 2) Options for swaggerJSDoc – point `apis` to your route & model files
@@ -49,12 +53,11 @@ app.use(
 // --------------------------------------------------------------------
 app.use('/api/matches', matchRoutes);
 app.use('/api/users', userRoutes);
-
+app.use('/api/auth', authRoutes);
 app.get('/', (req: Request, res: Response) => {
   res.send('Social4Sports API Running 🚀');
 });
 
-const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/social4sports';
 
 mongoose
