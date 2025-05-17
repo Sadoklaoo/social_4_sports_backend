@@ -6,7 +6,7 @@
 ![Redis](https://img.shields.io/badge/Redis-7.x-red?logo=redis)
 ![License](https://img.shields.io/badge/license-MIT-brightgreen)
 
-Social4Sports is a **social sports platform** that connects players based on skill level and location. This repository contains the **backend API** built using **Node.js**, **Express**, **PostgreSQL**, and **Redis**.
+Social4Sports is a social sports platform that connects players based on skill level and location. This repository contains the backend API built using Node.js, Express.js, MongoDB, and Redis.
 
 ## 🚀 Features
 
@@ -25,7 +25,7 @@ Social4Sports is a **social sports platform** that connects players based on ski
 - **Authentication**: JWT (JSON Web Token)  
 - **Real-time Communication**: WebSockets ([Socket.io](https://socket.io/))  
 - **Caching & Queues**: [Redis](https://redis.io/) for caching & job queuing  
-- **Task Scheduling**: [BullMQ](https://docs.bullmq.io/)  
+- **API Docs**: [Swagger (OpenAPI)]([https://swagger.io/specification/]) with  [Swagger JSdoc] ([https://www.npmjs.com/package/swagger-jsdoc)] & [Swagger UI Express]([https://www.npmjs.com/package/swagger-ui-express]).
 
 ## 📌 Installation & Setup
 
