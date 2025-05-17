@@ -3,6 +3,7 @@ import { Schema, model, Document } from 'mongoose';
 export interface IUser extends Document {
   email: string;
   passwordHash: string;
+  avatar: string;
   skillLevel: string;
   location: { type: string; coordinates: [number, number] };
   // …other fields
@@ -18,12 +19,15 @@ export interface IUser extends Document {
  *           type: string
  *         email:
  *           type: string
+ *         avatar:
+ *           type: string
  *         skillLevel:
  *           type: string
  */
 const userSchema = new Schema<IUser>({
   email:        { type: String, required: true, unique: true },
   passwordHash: { type: String, required: true },
+  avatar:      { type: String, default: 'https://example.com/default-avatar.png' },
   skillLevel:   { type: String, enum: ['beginner','intermediate','pro'], default: 'beginner' },
   location: {
     type: { type: String, enum: ['Point'], default: 'Point' },

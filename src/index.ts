@@ -4,10 +4,17 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+
 import matchRoutes from './routes/matches';
+import userRoutes from './routes/user';
+import authRoutes from './routes/auth';
+
 // Swagger imports
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
+
+// Database initializer
+import { initializeDatabase } from './config/initDatabase';
 
 dotenv.config();
 
@@ -17,7 +24,8 @@ app.use(cors());
 app.use(helmet());
 
 // --- Swagger setup --------------------------------------------------
-// 1) Basic Swagger definition (OpenAPI 3.0)
+const PORT = process.env.PORT || 3000;
+
 const swaggerDefinition = {
   openapi: '3.0.0',
   info: {
@@ -26,40 +34,65 @@ const swaggerDefinition = {
     description: 'Interactive API documentation for the Social4Sports backend',
   },
   servers: [
-    { url: `http://localhost:${process.env.PORT || 3000}` }
+    {
+      url: `/`,
+      description: 'Local development server (IPv4)',
+    },
   ],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'JWT authorization header',
+      },
+    },
+     security: [
+    {
+     bearerAuth: []
+    }
+    ],
+  },
 };
 
-// 2) Options for swaggerJSDoc – point `apis` to your route & model files
 const swaggerOptions = {
   swaggerDefinition,
   apis: ['./src/routes/**/*.ts', './src/models/**/*.ts'],
 };
 
-// 3) Initialize swagger-jsdoc → produces the OpenAPI spec
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
-// 4) Serve Swagger UI at /api-docs
 app.use(
   '/api-docs',
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpec, { explorer: true })
 );
 // --------------------------------------------------------------------
+
 app.use('/api/matches', matchRoutes);
-app.get('/', (req: Request, res: Response) => {
+app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
+
+app.get('/', (_req: Request, res: Response) => {
   res.send('Social4Sports API Running 🚀');
 });
 
-const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/social4sports';
+const MONGODB_URI =
+  process.env.MONGODB_URI || 'mongodb://admin:admin@mongo:27017/social4sports?authSource=admin';
 
 mongoose
   .connect(MONGODB_URI)
-  .then(() => {
+  .then(async () => {
     console.log('✅ MongoDB connected');
+
+    // Run index creation + data seeding
+    await initializeDatabase();
+
     app.listen(PORT, () =>
-      console.log(`🚀 Server running on port ${PORT} — docs: http://localhost:${PORT}/api-docs`)
+      console.log(
+        `🚀 Server running on port ${PORT} — docs: http://127.0.0.1:${PORT}/api-docs`
+      )
     );
   })
   .catch((err) => {
