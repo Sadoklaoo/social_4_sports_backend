@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import * as friendService from '../services/friendService';
-import { IFriendRequest } from '../models/friendRequest';
+import { FriendRequestStatus, IFriendRequest } from '../models/friendRequest';
 
 interface SendRequestDTO {
   recipientId: string;
@@ -77,3 +77,25 @@ export const listSent: RequestHandler<{}, IFriendRequest[]> = async (req, res, n
     next(err);
   }
 };
+
+
+/**
+ * GET /api/friends
+ * List confirmed friends
+ */ 
+export const listFriends: RequestHandler<{}, Array<{
+  _id: string;
+  fullName: string;
+  email: string;
+  avatar: string;
+  since: Date;
+}>> = async (req, res, next) => {
+  try {
+    // @ts-ignore
+    const userId: string = req.user.id;
+    const list = await friendService.listFriends(userId);
+    res.json(list);
+  } catch (err) {
+    next(err);
+  }
+}

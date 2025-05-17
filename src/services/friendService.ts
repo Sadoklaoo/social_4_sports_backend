@@ -72,3 +72,39 @@ export const listSent = async (
     .populate('recipient', 'fullName email avatar')
     .exec();
 };
+
+
+/**
+ * List confirmed friends for a user
+ */
+export const listFriends = async (
+  userId: string
+): Promise<Array<{
+  _id: string;
+  fullName: string;
+  email: string;
+  avatar: string;
+  since: Date;
+}>> => {
+  const requests = await FriendRequest.find({
+    status: FriendRequestStatus.Accepted,
+    $or: [
+      { requester: userId },
+      { recipient: userId }
+    ]
+  })
+    .populate('requester', 'fullName email avatar')
+    .populate('recipient', 'fullName email avatar')
+    .exec();
+
+  return requests.map(req => {
+    const other = req.requester.id.toString() === userId ? req.recipient : req.requester;
+    return {
+      _id: other.id.toString ? other.id.toString() : String(other.id),
+      fullName: (other as any).fullName,
+      email: (other as any).email,
+      avatar: (other as any).avatar,
+      since: req.updatedAt,
+    };
+  });
+};

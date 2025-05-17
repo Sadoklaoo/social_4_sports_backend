@@ -5,6 +5,7 @@ import {
   respondRequest,
   listReceived,
   listSent,
+  listFriends,
 } from '../controllers/friendController';
 import { wrap } from '../middlewares/errorHandler';
 import { requireAuth } from '../middlewares/authMiddleware';
@@ -129,4 +130,34 @@ router.get(
   wrap(listSent)
 );
 
+/**
+ * @openapi
+ * /api/friends:
+ *   get:
+ *     summary: List all confirmed friends for the current user
+ *     tags: [Friends]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of friend objects
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   fullName:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   avatar:
+ *                     type: string
+ *                   since:
+ *                     type: string
+ */
+router.get('/', requireAuth, wrap(listFriends));
 export default router;
