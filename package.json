@@ -4,9 +4,12 @@
   "description": "![Node.js](https://img.shields.io/badge/Node.js-18.x-green?logo=node.js)  ![Express.js](https://img.shields.io/badge/Express.js-4.x-black?logo=express)  ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql) ![Redis](https://img.shields.io/badge/Redis-7.x-red?logo=redis) ![License](https://img.shields.io/badge/license-MIT-brightgreen)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/index.ts",
-    "dev": "ts-node --transpile-only src/index.ts"
+    "dev": "ts-node --transpile-only src/index.ts",
+    "lint": "eslint . --ext .ts",
+    "type-check": "tsc --noEmit",
+    "test": "jest --coverage",
+    "build": "tsc -p tsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -24,15 +27,21 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
+    "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.13.10",
     "@types/socket.io": "^3.0.1",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
+    "eslint": "^9.27.0",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.9",
+    "ts-jest": "^29.3.4",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@types/helmet": "^0.0.48",
