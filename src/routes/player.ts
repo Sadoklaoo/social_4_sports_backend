@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { searchPlayers } from '../controllers/playerController';
 import { requireAuth } from '../middlewares/authMiddleware';
 import { IUser } from '../models/User';
+import { wrap } from '../middlewares/errorHandler';
 
 // Define the query parameters type for the search endpoint
 type QueryParams = {
@@ -59,7 +60,7 @@ const router = Router();
 router.get<{}, IUser[], {}, QueryParams>(
   '/search',
   requireAuth,
-  searchPlayers
+  wrap(searchPlayers)
 );
 
 export default router;

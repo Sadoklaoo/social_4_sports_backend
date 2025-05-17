@@ -1,6 +1,7 @@
 // src/routes/auth.ts
 import { Router } from 'express';
 import { signup, login } from '../controllers/authController';
+import { wrap } from '../middlewares/errorHandler';
 
 const router = Router();
 
@@ -60,7 +61,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/User'
  */
-router.post('/signup', signup);
+router.post('/signup', wrap(signup));
 
 /**
  * @openapi
@@ -91,6 +92,6 @@ router.post('/signup', signup);
  *                 accessToken:
  *                   type: string
  */
-router.post('/login', login);
+router.post('/login', wrap(login));
 
 export default router;

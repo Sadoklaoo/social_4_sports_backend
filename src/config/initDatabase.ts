@@ -3,6 +3,7 @@
 import bcrypt from 'bcrypt';
 import User, { IUser } from '../models/User';
 import Match from '../models/Match';
+import Message from '../models/Message';
 
 const SALT_ROUNDS = 10;
 
@@ -12,6 +13,7 @@ export async function initializeDatabase(): Promise<void> {
   await Promise.all([
     User.init(),
     Match.init(),
+    Message.init(),
     // …any other Model.init() calls
   ]);
 
