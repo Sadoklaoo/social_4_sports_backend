@@ -7,6 +7,7 @@ import {
   deleteUser,
 } from '../controllers/userController';
 import { requireAuth } from '../middlewares/authMiddleware';
+import { wrap } from '../middlewares/errorHandler';
 
 const router = Router();
 
@@ -26,7 +27,7 @@ const router = Router();
  *       201:
  *         description: The created user
  */
-router.post('/', createUser);
+router.post('/', wrap(createUser));
 
 /**
  * @openapi
@@ -50,7 +51,7 @@ router.post('/', createUser);
  *             schema:
  *               $ref: '#/components/schemas/User'
  */
-router.get('/:id',requireAuth, getUserById);
+router.get('/:id',requireAuth, wrap(getUserById));
 
 /**
  * @openapi
@@ -76,7 +77,7 @@ router.get('/:id',requireAuth, getUserById);
  *       200:
  *         description: The updated user
  */
-router.put('/:id',requireAuth, updateUser);
+router.put('/:id',requireAuth, wrap(updateUser));
 
 /**
  * @openapi
@@ -96,6 +97,6 @@ router.put('/:id',requireAuth, updateUser);
  *       204:
  *         description: No Content
  */
-router.delete('/:id',requireAuth, deleteUser);
+router.delete('/:id',requireAuth, wrap(deleteUser));
 
 export default router;

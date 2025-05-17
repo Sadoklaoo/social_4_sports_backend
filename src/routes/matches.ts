@@ -9,6 +9,7 @@ import {
   completeMatch,
 } from '../controllers/matchController';
 import { requireAuth } from '../middlewares/authMiddleware';
+import { wrap } from '../middlewares/errorHandler';
 
 const router = Router();
 
@@ -47,7 +48,7 @@ const router = Router();
  *       201:
  *         description: Match scheduled
  */
-router.post('/', requireAuth, scheduleMatch);
+router.post('/', requireAuth, wrap(scheduleMatch));
 
 /**
  * @openapi
@@ -61,7 +62,7 @@ router.post('/', requireAuth, scheduleMatch);
  *       200:
  *         description: Upcoming matches list
  */
-router.get('/upcoming', requireAuth, getUpcomingMatches);
+router.get('/upcoming', requireAuth, wrap(getUpcomingMatches));
 
 /**
  * @openapi
@@ -81,7 +82,7 @@ router.get('/upcoming', requireAuth, getUpcomingMatches);
  *       200:
  *         description: Match confirmed
  */
-router.put('/:id/confirm', requireAuth, confirmMatch);
+router.put('/:id/confirm', requireAuth, wrap(confirmMatch));
 
 /**
  * @openapi
@@ -111,7 +112,7 @@ router.put('/:id/confirm', requireAuth, confirmMatch);
  *       200:
  *         description: Match rescheduled
  */
-router.put('/:id/reschedule', requireAuth, rescheduleMatch);
+router.put('/:id/reschedule', requireAuth, wrap(rescheduleMatch));
 
 /**
  * @openapi
@@ -131,7 +132,7 @@ router.put('/:id/reschedule', requireAuth, rescheduleMatch);
  *       200:
  *         description: Match cancelled
  */
-router.delete('/:id', requireAuth, cancelMatch);
+router.delete('/:id', requireAuth, wrap(cancelMatch));
 
 /**
  * @openapi
@@ -145,7 +146,7 @@ router.delete('/:id', requireAuth, cancelMatch);
  *       200:
  *         description: Completed matches list
  */
-router.get('/history', requireAuth, getMatchHistory);
+router.get('/history', requireAuth, wrap(getMatchHistory));
 
 /**
  * @openapi
@@ -181,6 +182,6 @@ router.get('/history', requireAuth, getMatchHistory);
  *       200:
  *         description: Match completed with score & result
  */
-router.put('/:id/complete', requireAuth, completeMatch);
+router.put('/:id/complete', requireAuth, wrap(completeMatch));
 
 export default router;
