@@ -13,6 +13,7 @@ import userRoutes from './routes/user';
 import authRoutes from './routes/auth';
 import playerRoutes from './routes/player';
 import messageRoutes from './routes/message';
+import friendsRoutes from './routes/friends';
 
 // Swagger imports
 import swaggerUi from 'swagger-ui-express';
@@ -71,6 +72,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/players', playerRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/friends', friendsRoutes);
 
 app.get('/', (_req: Request, res: Response) => {
   res.send('Social4Sports API Running 🚀');
