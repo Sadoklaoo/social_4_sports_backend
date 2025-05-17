@@ -76,7 +76,7 @@ router.get('/:id',requireAuth, getUserById);
  *       200:
  *         description: The updated user
  */
-router.put('/:id', updateUser);
+router.put('/:id',requireAuth, updateUser);
 
 /**
  * @openapi
@@ -96,6 +96,6 @@ router.put('/:id', updateUser);
  *       204:
  *         description: No Content
  */
-router.delete('/:id', deleteUser);
+router.delete('/:id',requireAuth, deleteUser);
 
 export default router;

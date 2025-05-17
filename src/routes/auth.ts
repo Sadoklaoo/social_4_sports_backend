@@ -16,32 +16,49 @@ const router = Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required: [email, password, location]
+ *             required:
+ *               - fullName
+ *               - email
+ *               - password
+ *               - location
  *             properties:
+ *               fullName:
+ *                 type: string
+ *                 example: Alice Example
  *               email:
  *                 type: string
+ *                 example: alice@example.com
  *               password:
  *                 type: string
+ *                 example: secret123
  *               avatar:
  *                 type: string
+ *                 example: https://example.com/avatar.png
  *               skillLevel:
  *                 type: string
  *                 enum: [beginner, intermediate, pro]
+ *                 example: intermediate
  *               location:
  *                 type: object
+ *                 required:
+ *                   - type
+ *                   - coordinates
  *                 properties:
  *                   type:
  *                     type: string
- *                     enum: [Point]
+ *                     example: Point
  *                   coordinates:
  *                     type: array
  *                     items:
  *                       type: number
- *                     minItems: 2
- *                     maxItems: 2
+ *                     example: [19.0, 47.5]
  *     responses:
  *       201:
- *         description: Created user
+ *         description: Created user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
  */
 router.post('/signup', signup);
 

@@ -19,6 +19,7 @@ interface TokenPayload extends JwtPayload {
 }
 
 export const signup = async (data: {
+  fullName: string; 
   email: string;
   password: string;
   avatar?: string;
@@ -33,6 +34,7 @@ export const signup = async (data: {
   const passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS);
   // We only pass the fields our schema expects
   const newUser = await User.create({
+    fullName: data.fullName, // Default to email prefix
     email: data.email,
     passwordHash,
     avatar: data.avatar,
