@@ -40,6 +40,8 @@ router.post('/', createUser);
  *         required: true
  *         schema:
  *           type: string
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: A user object
@@ -48,7 +50,7 @@ router.post('/', createUser);
  *             schema:
  *               $ref: '#/components/schemas/User'
  */
-router.get('/:id', getUserById);
+router.get('/:id',requireAuth, getUserById);
 
 /**
  * @openapi

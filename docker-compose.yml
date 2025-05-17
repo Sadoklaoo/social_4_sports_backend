@@ -7,7 +7,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongo:27017/social4sports
+      - MONGODB_URI=mongodb://admin:admin@mongo:27017/social4sports?authSource=admin
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
     volumes:
@@ -19,6 +19,10 @@ services:
 
   mongo:
     image: mongo:7.0
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+      - MONGO_INITDB_DATABASE=social4sports
     restart: always
     ports:
       - '27017:27017'
