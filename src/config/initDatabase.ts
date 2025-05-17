@@ -17,7 +17,7 @@ export async function initializeDatabase(): Promise<void> {
 
   // 2) Seed any essential data—for example, a default admin user.
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'supersecret';
   const existingAdmin = await User.findOne({ email: adminEmail }).exec();
   if (!existingAdmin) {
     console.log('🛠  Seeding default admin user');

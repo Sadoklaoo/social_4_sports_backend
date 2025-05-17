@@ -1,15 +1,39 @@
-// src/routes/matches.ts
 import { Router } from 'express';
-import { createMatch, getMatchHistory } from '../controllers/matchController';
-import requireAuth from '../middlewares/authMiddleware';
+import {
+  scheduleMatch,
+  getUpcomingMatches,
+  confirmMatch,
+  cancelMatch,
+  rescheduleMatch,
+  getMatchHistory,
+  completeMatch,
+} from '../controllers/matchController';
+import { requireAuth } from '../middlewares/authMiddleware';
 
 const router = Router();
 
 /**
  * @openapi
+ * components:
+ *   schemas:
+ *     ScheduleMatch:
+ *       type: object
+ *       required: [opponent, location, scheduledFor]
+ *       properties:
+ *         opponent:
+ *           type: string
+ *         location:
+ *           type: string
+ *         scheduledFor:
+ *           type: string
+ *           format: date-time
+ */
+
+/**
+ * @openapi
  * /api/matches:
  *   post:
- *     summary: Record a new match
+ *     summary: Schedule a new match
  *     tags: [Matches]
  *     security:
  *       - bearerAuth: []
@@ -18,31 +42,145 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Match'
+ *             $ref: '#/components/schemas/ScheduleMatch'
  *     responses:
  *       201:
- *         description: Match created
+ *         description: Match scheduled
  */
-router.post('/', requireAuth, createMatch);
+router.post('/', requireAuth, scheduleMatch);
 
 /**
  * @openapi
- * /api/matches/history:
+ * /api/matches/upcoming:
  *   get:
- *     summary: Get your match history
+ *     summary: Get upcoming matches
  *     tags: [Matches]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Array of match records
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Match'
+ *         description: Upcoming matches list
  */
-router.get('/history',requireAuth, getMatchHistory);
+router.get('/upcoming', requireAuth, getUpcomingMatches);
+
+/**
+ * @openapi
+ * /api/matches/{id}/confirm:
+ *   put:
+ *     summary: Confirm an incoming match
+ *     tags: [Matches]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Match confirmed
+ */
+router.put('/:id/confirm', requireAuth, confirmMatch);
+
+/**
+ * @openapi
+ * /api/matches/{id}/reschedule:
+ *   put:
+ *     summary: Reschedule a match (initiator only)
+ *     tags: [Matches]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               scheduledFor:
+ *                 type: string
+ *                 format: date-time
+ *     responses:
+ *       200:
+ *         description: Match rescheduled
+ */
+router.put('/:id/reschedule', requireAuth, rescheduleMatch);
+
+/**
+ * @openapi
+ * /api/matches/{id}:
+ *   delete:
+ *     summary: Cancel a match
+ *     tags: [Matches]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Match cancelled
+ */
+router.delete('/:id', requireAuth, cancelMatch);
+
+/**
+ * @openapi
+ * /api/matches/history:
+ *   get:
+ *     summary: Get completed match history
+ *     tags: [Matches]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Completed matches list
+ */
+router.get('/history', requireAuth, getMatchHistory);
+
+/**
+ * @openapi
+ * /api/matches/{id}/complete:
+ *   put:
+ *     summary: Complete a confirmed match
+ *     tags: [Matches]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [score, result]
+ *             properties:
+ *               score:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["11-9", "9-11", "11-7"]
+ *               result:
+ *                 type: string
+ *                 enum: [Win, Loss]
+ *     responses:
+ *       200:
+ *         description: Match completed with score & result
+ */
+router.put('/:id/complete', requireAuth, completeMatch);
 
 export default router;
