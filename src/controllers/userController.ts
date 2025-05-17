@@ -4,42 +4,24 @@ import * as userService from '../services/userService';
 
 
 interface CreateUserDTO {
+  fullName: string;                   // ← new
   email: string;
   passwordHash: string;
   avatar?: string;
-  skillLevel: 'beginner' | 'intermediate' | 'pro';
-  location: {
-    type: 'Point';
-    coordinates: [number, number];
-  };
+  skillLevel: 'beginner'|'intermediate'|'pro';
+  location: { type:'Point'; coordinates:[number,number] };
 }
 
-
-export const createUser: RequestHandler<{}, {}, CreateUserDTO> = async (req, res, next) => {
+export const createUser: RequestHandler<{},{},CreateUserDTO> = async (req, res, next) => {
+  const { fullName, email, passwordHash, avatar, skillLevel, location } = req.body;
+  if (!fullName || !email || !passwordHash || !location?.coordinates) {
+    res.status(400).json({ message: 'Missing required fields' });
+    return;
+  }
   try {
-    const {
-      email,
-      passwordHash,
-      avatar,
-      skillLevel = 'beginner',        // default if omitted
-      location,
-    } = req.body;
-
-    // Basic server-side guard
-    if (!email || !passwordHash || !location?.coordinates) {
-      res.status(400).json({ message: 'Missing required fields' });
-      return;
-    }
-
-    const user = await userService.createUser({
-      email,
-      passwordHash,
-      avatar,
-      skillLevel,
-      location,
-    });
-
+    const user = await userService.createUser({ fullName, email, passwordHash, avatar, skillLevel, location });
     res.status(201).json(user);
+    return;
   } catch (err) {
     next(err);
   }

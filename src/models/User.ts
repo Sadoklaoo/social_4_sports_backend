@@ -1,6 +1,7 @@
 import { Schema, model, Document } from 'mongoose';
 
 export interface IUser extends Document {
+  fullName: string; 
   email: string;
   passwordHash: string;
   avatar: string;
@@ -17,14 +18,27 @@ export interface IUser extends Document {
  *       properties:
  *         _id:
  *           type: string
+ *         fullName:
+ *           type: string        # ← new
  *         email:
  *           type: string
  *         avatar:
  *           type: string
  *         skillLevel:
  *           type: string
+ *           enum: [beginner, intermediate, pro]
+ *         location:
+ *           type: object
+ *           properties:
+ *             type:
+ *               type: string
+ *             coordinates:
+ *               type: array
+ *               items:
+ *                 type: number
  */
 const userSchema = new Schema<IUser>({
+  fullName:    { type: String, required: true },
   email:        { type: String, required: true, unique: true },
   passwordHash: { type: String, required: true },
   avatar:      { type: String, default: 'https://example.com/default-avatar.png' },
