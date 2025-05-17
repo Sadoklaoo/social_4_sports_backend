@@ -43,10 +43,3 @@ jobs:
 
       - name: Build project
         run: npm run build
-
-      - name: Upload coverage report
-        if: ${{ success() && steps.test.outcome == 'success' }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage-report
-          path: coverage/
