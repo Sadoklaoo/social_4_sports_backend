@@ -1,4 +1,5 @@
-export default {
+// eslint.config.cjs
+module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
@@ -15,6 +16,6 @@ export default {
     sourceType: 'module'
   },
   rules: {
-    // your overrides
+    // your rules…
   }
 };
