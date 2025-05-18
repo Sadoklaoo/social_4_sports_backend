@@ -1,8 +1,12 @@
 // eslint.config.cjs
 module.exports = {
   root: true,
-  parser: '@typescript-eslint/parser',
+    languageOptions: {
+    parser: '@typescript-eslint/parser',
+    parserOptions: { ecmaVersion: 'latest' },
+  },
   plugins: ['@typescript-eslint'],
+  ignores: ['node_modules'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended'
