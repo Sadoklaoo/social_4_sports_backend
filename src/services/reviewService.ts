@@ -1,4 +1,4 @@
-import Review, { IReview } from '../models/review';
+import Review, { IReview } from '../models/Review';
 import { Types } from 'mongoose';
 
 export interface CreateReviewInput {

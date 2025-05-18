@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import * as reviewService from '../services/reviewService';
-import { IReview } from '../models/review';
+import { IReview } from '../models/Review';
 
 interface CreateReviewDTO {
   matchId: string;
