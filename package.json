@@ -6,7 +6,8 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "ts-node --transpile-only src/index.ts",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint 'src/**/*.{ts,js}'",
+    "lint:fix": "eslint 'src/**/*.{ts,js}' --fix",
     "type-check": "tsc --noEmit",
     "test": "jest --coverage",
     "build": "tsc -p tsconfig.json"
