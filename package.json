@@ -6,8 +6,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "ts-node --transpile-only src/index.ts",
-    "lint": "eslint --ext .ts src --no-ignore",
-    "lint:fix": "eslint 'src/**/*.{ts,js}' --fix",
+    "lint": "eslint --ext .ts src",
     "type-check": "tsc --noEmit",
     "test": "jest --coverage",
     "build": "tsc -p tsconfig.json"
@@ -36,7 +35,7 @@
     "@types/swagger-ui-express": "^4.1.8",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
-    "eslint": "^9.27.0",
+    "eslint": "^8.57.1",
     "jest": "^29.7.0",
     "nodemon": "^3.1.9",
     "ts-jest": "^29.3.4",
