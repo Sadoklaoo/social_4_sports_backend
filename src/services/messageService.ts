@@ -1,5 +1,6 @@
+// src/services/messageService.ts
 import Message, { IMessage } from '../models/Message';
-import { Types } from 'mongoose';
+import { Types, FilterQuery } from 'mongoose';
 
 export interface SendMessageInput {
   senderId: string;
@@ -38,7 +39,8 @@ export const getConversation = async (
   const userObjectId = new Types.ObjectId(userId);
   const peerObjectId = new Types.ObjectId(peerId);
 
-  const query: any = {
+  // query typed as FilterQuery<IMessage>
+  const query: FilterQuery<IMessage> = {
     $or: [
       { sender: userObjectId, recipient: peerObjectId },
       { sender: peerObjectId, recipient: userObjectId },
@@ -46,7 +48,8 @@ export const getConversation = async (
   };
 
   if (before) {
-    query.createdAt = { $lt: before };
+    // Use Mongoose's own type for createdAt
+    query.createdAt = { $lt: before } as FilterQuery<IMessage>['createdAt'];
   }
 
   return Message.find(query)
@@ -54,7 +57,6 @@ export const getConversation = async (
     .limit(limit)
     .exec();
 };
-
 
 export interface MarkReadParams {
   userId: string;
@@ -68,9 +70,18 @@ export const markConversationRead = async (
   params: MarkReadParams
 ): Promise<number> => {
   const { userId, peerId } = params;
+
+  // Build a FilterQuery<IMessage> without any `any`
+  const filter: FilterQuery<IMessage> = {
+    sender: new Types.ObjectId(peerId),
+    recipient: new Types.ObjectId(userId),
+    readAt: { $exists: false },
+  };
+
   const res = await Message.updateMany(
-    { sender: peerId, recipient: userId, readAt: { $exists: false } },
+    filter,
     { $set: { readAt: new Date() } }
   ).exec();
+
   return res.modifiedCount;
 };
