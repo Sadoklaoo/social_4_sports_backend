@@ -1,7 +1,8 @@
 // src/routes/auth.ts
 import { Router } from 'express';
-import { signup, login } from '../controllers/authController';
+import { signup, login, me } from '../controllers/authController';
 import { wrap } from '../middlewares/errorHandler';
+import requireAuth from '../middlewares/authMiddleware';
 
 const router = Router();
 
@@ -94,4 +95,60 @@ router.post('/signup', wrap(signup));
  */
 router.post('/login', wrap(login));
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     MeResponse:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         email:
+ *           type: string
+ *         avatar:
+ *           type: string
+ *         skillLevel:
+ *           type: string
+ *           enum: [beginner, intermediate, pro]
+ *         location:
+ *           type: object
+ *           properties:
+ *             type:
+ *               type: string
+ *               enum: [Point]
+ *             coordinates:
+ *               type: array
+ *               items:
+ *                 type: number
+ *           example:
+ *             type: Point
+ *             coordinates: [19.040236, 47.497912]
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
+
+/**
+ * @openapi
+ * /api/auth/me:
+ *   get:
+ *     summary: Get current authenticated user
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Current user profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MeResponse'
+ *       401:
+ *         description: Missing or invalid JWT
+ */
+router.get('/me', requireAuth, wrap(me));
 export default router;

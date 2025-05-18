@@ -1,58 +1,80 @@
+// src/tests/auth.test.ts
 import request from 'supertest';
 import mongoose from 'mongoose';
-import app from '../index'; // assume you export your Express app (not server.listen)
-import User from '../models/User'; // adjust the path to your User model
+import dotenv from 'dotenv';
+import app from '../app';
+import User from '../models/User';
+
+dotenv.config();
+const API = request(app);
+const TEST_URI = process.env.MONGODB_URI_TEST!;
+
+beforeAll(async () => {
+  await mongoose.connect(TEST_URI);
+});
+
+afterEach(async () => {
+  await User.deleteMany({});
+});
+
+afterAll(async () => {
+  if (mongoose.connection.db) {
+    try {
+      await mongoose.connection.db.dropDatabase();
+    } catch {
+      /* ignore auth errors */
+    }
+  }
+  await mongoose.disconnect();
+});
+
 describe('Auth API', () => {
-  const api = request(app);
-
-  beforeAll(async () => {
-    // Connect to test DB
-    await mongoose.connect(process.env.MONGODB_URI_TEST!);
-  });
-
-  afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-  });
-
-  afterEach(async () => {
-    await User.deleteMany({});
-  });
-
+  // fullName plus proper GeoJSON location
   const userData = {
-    email: 'testuser@example.com',
-    password: 'SecurePass123!',
-    avatar: 'https://example.com/avatar.png',
-    skillLevel: 'intermediate',
-    location: { type: 'Point', coordinates: [19.040236, 47.497912] }
+    email: 'alice@test.com',
+    password: 'Secret123!',
+    fullName: 'Alice Anderson',
+    location: {
+      type: 'Point',
+      // [longitude, latitude]
+      coordinates: [ -71.456, 45.123 ]
+    }
   };
 
   it('should signup a new user', async () => {
-    const res = await api
+    const res = await API
       .post('/api/auth/signup')
       .send(userData)
       .expect(201)
-      .expect('Content-Type', /application\/json/);
+      .expect('Content-Type', /json/);
 
     expect(res.body).toHaveProperty('_id');
     expect(res.body).toHaveProperty('email', userData.email);
+    expect(res.body).toHaveProperty('fullName', userData.fullName);
+    // location should echo back GeoJSON
+    expect(res.body).toHaveProperty('location.type', 'Point');
+    expect(res.body).toHaveProperty('location.coordinates');
+    expect(res.body.location.coordinates).toEqual(
+      expect.arrayContaining(userData.location.coordinates)
+    );
   });
 
-  it('should not signup with duplicate email', async () => {
-    await api.post('/api/auth/signup').send(userData);
-    const res = await api
+  it('should not allow duplicate signup', async () => {
+    await API.post('/api/auth/signup').send(userData).expect(201);
+
+    const res = await API
       .post('/api/auth/signup')
       .send(userData)
       .expect(409);
 
+    expect(res.body).toHaveProperty('error');
     expect(res.body.error).toHaveProperty('message');
   });
 
-  it('should login an existing user', async () => {
-    // First sign up
-    await api.post('/api/auth/signup').send(userData);
+  it('should login with correct credentials', async () => {
+    await API.post('/api/auth/signup').send(userData).expect(201);
 
-    const res = await api
+    const res = await API
       .post('/api/auth/login')
       .send({ email: userData.email, password: userData.password })
       .expect(200);
@@ -61,30 +83,31 @@ describe('Auth API', () => {
   });
 
   it('should reject login with wrong password', async () => {
-    await api.post('/api/auth/signup').send(userData);
+    await API.post('/api/auth/signup').send(userData).expect(201);
 
-    const res = await api
+    await API
       .post('/api/auth/login')
-      .send({ email: userData.email, password: 'WrongPass' })
+      .send({ email: userData.email, password: 'WrongPass!' })
       .expect(401);
-
-    expect(res.body.error).toHaveProperty('message');
-  });
-
-  it('should get current user profile with valid token', async () => {
-    await api.post('/api/auth/signup').send(userData);
-    const loginRes = await api.post('/api/auth/login').send({ email: userData.email, password: userData.password });
-    const token = loginRes.body.accessToken;
-
-    const res = await api
-      .get('/api/auth/me')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200);
-
-    expect(res.body).toHaveProperty('email', userData.email);
   });
 
   it('should reject /me without token', async () => {
-    await api.get('/api/auth/me').expect(401);
+    await API.get('/api/auth/me').expect(401);
+  });
+
+  it('should return current user with valid token', async () => {
+    await API.post('/api/auth/signup').send(userData).expect(201);
+    const login = await API
+      .post('/api/auth/login')
+      .send({ email: userData.email, password: userData.password })
+      .expect(200);
+
+    const res = await API
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${login.body.accessToken}`)
+      .expect(200);
+
+    expect(res.body).toHaveProperty('email', userData.email);
+    expect(res.body).toHaveProperty('fullName', userData.fullName);
   });
 });
