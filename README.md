@@ -1,31 +1,35 @@
 # 🏓 Social4Sports Backend
 
-![Node.js](https://img.shields.io/badge/Node.js-18.x-green?logo=node.js) 
-![Express.js](https://img.shields.io/badge/Express.js-4.x-black?logo=express) 
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql)
-![Redis](https://img.shields.io/badge/Redis-7.x-red?logo=redis)
+![Node.js](https://img.shields.io/badge/Node.js-18.x-green?logo=node.js)  
+![Express.js](https://img.shields.io/badge/Express.js-4.x-black?logo=express)  
+![MongoDB](https://img.shields.io/badge/MongoDB-6.x-green?logo=mongodb)  
+![Redis](https://img.shields.io/badge/Redis-7.x-red?logo=redis)  
+![JWT](https://img.shields.io/badge/JWT-Auth-blue?logo=jsonwebtokens)  
+![Swagger](https://img.shields.io/badge/Swagger-OpenAPI-brightgreen?logo=swagger)  
 ![License](https://img.shields.io/badge/license-MIT-brightgreen)
 
-Social4Sports is a **social sports platform** that connects players based on skill level and location. This repository contains the **backend API** built using **Node.js**, **Express**, **PostgreSQL**, and **Redis**.
+Social4Sports is a social sports platform that connects players based on skill level and location. This repository contains the backend API built using Node.js, Express.js, MongoDB, and Redis.
+
 
 ## 🚀 Features
 
-✅ **User Authentication** (JWT-based authentication)  
+✅ **User Authentication** (JWT-based)  
 ✅ **Profile Management** (Skill level, preferred playtime, location)  
-✅ **Player Matchmaking** (Find opponents based on skill & location)  
-✅ **Friend System** (Add/remove friends, manage friend requests)  
-✅ **Real-time Messaging** (WebSockets for instant communication)  
-✅ **Match Tracking & Ranking** (Store match results, update ranking)  
-✅ **Review & Rating System** (Post-match feedback for fair play)  
+✅ **Player Matchmaking** (Find opponents by skill & proximity)  
+✅ **Friend System** (Add/remove friends, manage requests)  
+✅ **Real-time Messaging** (WebSockets via Socket.io)  
+✅ **Match Scheduling & Tracking** (Schedule, confirm, reschedule, cancel, history)  
+✅ **Review & Rating System** (Post-match feedback)
 
 ## 🏗️ Tech Stack
 
-- **Backend Framework**: [Node.js](https://nodejs.org/) with [Express.js](https://expressjs.com/)  
-- **Database**: [PostgreSQL](https://www.postgresql.org/) with [Sequelize ORM](https://sequelize.org/)  
-- **Authentication**: JWT (JSON Web Token)  
-- **Real-time Communication**: WebSockets ([Socket.io](https://socket.io/))  
-- **Caching & Queues**: [Redis](https://redis.io/) for caching & job queuing  
-- **Task Scheduling**: [BullMQ](https://docs.bullmq.io/)  
+- **Backend**: Node.js & Express.js  
+- **Database**: MongoDB & Mongoose ODM  
+- **Authentication**: JWT (JSON Web Tokens)  
+- **Real-time**: Socket.io (WebSockets)  
+- **Caching & Queues**: Redis & BullMQ  
+- **API Docs**: Swagger (OpenAPI) via swagger-jsdoc & swagger-ui-express
+
 
 ## 📌 Installation & Setup
 
@@ -43,15 +47,18 @@ npm install
 ### 3️⃣ Set Up Environment Variables
 Create a `.env` file in the root directory and add the following:
 ```env
-PORT=5000
-DATABASE_URL=postgres://username:password@localhost:5432/social4sports
+PORT=3000
+MONGODB_URI=mongodb://<user>:<pass>@localhost:27017/social4sports?authSource=admin
 JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=1h
 REDIS_URL=redis://localhost:6379
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=admin123
 ```
 
-### 4️⃣ Run Database Migrations
+### 4️⃣ Start Services via Docker Compose (optional)
 ```sh
-npx sequelize-cli db:migrate
+docker compose up -d mongo redis
 ```
 
 ### 5️⃣ Start the Server
@@ -63,17 +70,62 @@ or with **nodemon** for live reloading:
 npm run dev
 ```
 
-## 🛡️ API Endpoints
+# 📡 API Endpoints
 
-| Method | Endpoint                 | Description                |
-|--------|--------------------------|----------------------------|
-| POST   | `/api/auth/signup`       | Register a new user        |
-| POST   | `/api/auth/login`        | Login & get JWT token      |
-| GET    | `/api/users/:id`         | Get user profile           |
-| PUT    | `/api/users/:id`         | Update user profile        |
-| GET    | `/api/players/search`    | Search for players         |
-| POST   | `/api/friends/add`       | Send friend request        |
-| GET    | `/api/matches/history`   | Get match history          |
+This document lists all available API endpoints for the Social4Sports Backend.
+
+---
+
+## 🛡️ Auth
+
+| Method | Endpoint           | Description             |
+| ------ | ------------------ | ----------------------- |
+| POST   | `/api/auth/signup` | Register a new user     |
+| POST   | `/api/auth/login`  | Login and receive a JWT |
+
+---
+
+## 👤 Users
+
+| Method | Endpoint         | Description            |
+| ------ | ---------------- | ---------------------- |
+| POST   | `/api/users`     | Create a new user      |
+| GET    | `/api/users/:id` | Get user profile by ID |
+| PUT    | `/api/users/:id` | Update user profile    |
+| DELETE | `/api/users/:id` | Delete user by ID      |
+
+---
+
+## 🏓 Matches
+
+| Method | Endpoint                      | Description                         |
+| ------ | ----------------------------- | ----------------------------------- |
+| POST   | `/api/matches`                | Schedule a new match                |
+| GET    | `/api/matches/upcoming`       | Retrieve upcoming matches           |
+| PUT    | `/api/matches/:id/confirm`    | Confirm an incoming match           |
+| PUT    | `/api/matches/:id/reschedule` | Reschedule a match (initiator only) |
+| DELETE | `/api/matches/:id`            | Cancel a match                      |
+| GET    | `/api/matches/history`        | Retrieve completed match history    |
+
+---
+
+## 🔍 Example Request
+
+```bash
+curl -X POST \
+  http://localhost:3000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{ "email": "alice@example.com", "password": "secret123" }'
+```
+
+## 🔗 Authentication
+
+All protected endpoints require a Bearer JWT in the `Authorization` header:
+
+```
+Authorization: Bearer <accessToken>
+```
+
 
 ## 🛠️ Contributing
 
