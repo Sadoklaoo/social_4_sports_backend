@@ -1,4 +1,5 @@
-module.exports = {
+export default {
+  root: true,
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
   extends: [
@@ -7,13 +8,13 @@ module.exports = {
   ],
   env: {
     node: true,
-    es2021: true,
+    es2021: true
   },
   parserOptions: {
     ecmaVersion: 'latest',
-    sourceType: 'module',
+    sourceType: 'module'
   },
   rules: {
-    // your overrides…
-  },
+    // your overrides
+  }
 };
