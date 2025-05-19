@@ -5,6 +5,7 @@ import {
   getUserById,
   updateUser,
   deleteUser,
+  getUserStats,
 } from '../controllers/userController';
 import { requireAuth } from '../middlewares/authMiddleware';
 import { wrap } from '../middlewares/errorHandler';
@@ -99,4 +100,27 @@ router.put('/:id',requireAuth, wrap(updateUser));
  */
 router.delete('/:id',requireAuth, wrap(deleteUser));
 
+/**
+ * @openapi
+ * /api/users/{id}/stats:
+ *   get:
+ *     summary: Get statistics for a user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserStats'
+ */
+router.get('/:id/stats', requireAuth, wrap(getUserStats));
 export default router;

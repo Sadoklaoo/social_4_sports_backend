@@ -65,3 +65,13 @@ export const deleteUser: RequestHandler = async (req, res, next) => {
     next(err);
   }
 };
+
+// Get user statistics
+export const getUserStats: RequestHandler = async (req, res, next) => {
+  try {
+    const stats = await userService.computeUserStats(req.params.id);
+    res.json(stats);
+  } catch (err) {
+    next(err);
+  }
+};
