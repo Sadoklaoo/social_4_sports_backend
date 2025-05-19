@@ -9,6 +9,10 @@ export interface INotification {
     | 'FriendRequestAccepted'
     | 'MatchInvite'
     | 'MatchInviteAccepted'
+    | 'MatchRescheduled'
+    | 'MatchCancelled'
+    | 'MatchCompleted'
+    | 'MatchRescheduleAccepted'
     | 'Review'
     | 'Message';                 // the notification’s type
   payload: any;                 // free-form: e.g. { matchId, reviewId }
@@ -26,6 +30,10 @@ const notificationSchema = new Schema<INotification>({
       'FriendRequestAccepted',
       'MatchInvite',
       'MatchInviteAccepted',
+      'MatchCancelled' ,
+      'MatchRescheduled',
+      'MatchCompleted',
+      'MatchRescheduleAccepted',
       'Review',
       'Message'
     ],

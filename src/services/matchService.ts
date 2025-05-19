@@ -1,6 +1,7 @@
-import Match, { IMatch, MatchStatus } from '../models/Match';
+import Match, { IMatch } from '../models/Match';
 import { Types } from 'mongoose';
-
+import * as notifService from './notificationService';
+import { io } from '../server';
 export interface ScheduleMatchInput {
   opponent: string;
   location: string;
@@ -11,18 +12,38 @@ export const scheduleMatch = async (
   userId: string,
   data: ScheduleMatchInput
 ): Promise<IMatch> => {
-  // Prevent self-scheduling
   if (data.opponent === userId) {
     throw new Error("You can't schedule a match with yourself");
   }
-  return Match.create({
-    initiator: new Types.ObjectId(userId),
-    opponent:  new Types.ObjectId(data.opponent),
-    location:  data.location,
+  const match = await Match.create({
+    initiator:   new Types.ObjectId(userId),
+    opponent:    new Types.ObjectId(data.opponent),
+    location:    data.location,
+    score:       [],
+    result:      null,
+    createdAt:   new Date(),
+    updatedAt:   new Date(),
+    completedAt: null,
+    status:      'AwaitingConfirmation',
     scheduledFor: data.scheduledFor,
-    status: 'AwaitingConfirmation',
   });
+
+  // — Notify opponent —
+  try {
+    const notif = await notifService.createNotification({
+      recipient: data.opponent,
+      actor:     userId,
+      type:      'MatchInvite',
+      payload:   { matchId: match.id, scheduledFor: match.scheduledFor }
+    });
+    io.to(`user:${data.opponent}`).emit('notification', notif);
+  } catch (err) {
+    console.error('Notification error (scheduleMatch):', err);
+  }
+
+  return match;
 };
+
 
 export const getUpcomingMatches = async (
   userId: string
@@ -45,45 +66,109 @@ export const confirmMatch = async (
   matchId: string,
   userId: string
 ): Promise<IMatch | null> => {
-  // Only opponent may confirm
   const match = await Match.findById(matchId).exec();
   if (!match || match.opponent.toString() !== userId) return null;
   if (match.status !== 'AwaitingConfirmation') return match;
+
   match.status = 'Confirmed';
-  return match.save();
+  const saved = await match.save();
+
+  // Notify initiator that invite (or re-invite) was accepted,
+  // including scheduledFor so the client sees which date was confirmed.
+  try {
+    const notif = await notifService.createNotification({
+      recipient: match.initiator.toString(),
+      actor:     userId,
+      type:      'MatchInviteAccepted',
+      payload:   { matchId: saved.id, scheduledFor: saved.scheduledFor }
+    });
+    io.to(`user:${match.initiator.toString()}`).emit('notification', notif);
+  } catch (err) {
+    console.error('Notification error (confirmMatch):', err);
+  }
+
+  return saved;
 };
 
 export const cancelMatch = async (
   matchId: string,
   userId: string
 ): Promise<IMatch | null> => {
-  // Either side can cancel if not completed
   const match = await Match.findById(matchId).exec();
   if (!match) return null;
-  if (match.initiator.toString() !== userId && match.opponent.toString() !== userId) {
+  if (
+    match.initiator.toString() !== userId &&
+    match.opponent.toString()  !== userId
+  ) {
     throw new Error('Not authorized');
   }
   if (match.status === 'Completed') {
     throw new Error('Cannot cancel a completed match');
   }
+
+  // Was this a confirmed match? If so, we treat this as a decline.
+  const wasConfirmed = match.status === 'Confirmed';
+
+  // Update status and save
   match.status = 'Cancelled';
-  return match.save();
+  const saved = await match.save();
+
+  // If it was confirmed, notify the other party that it’s been declined
+  if (wasConfirmed) {
+    const otherId =
+      match.initiator.toString() === userId
+        ? match.opponent.toString()
+        : match.initiator.toString();
+
+    try {
+      const notif = await notifService.createNotification({
+        recipient: otherId,
+        actor:     userId,
+        type:      'MatchCancelled',
+        payload:   { matchId: saved.id }
+      });
+      io.to(`user:${otherId}`).emit('notification', notif);
+    } catch (err) {
+      console.error('Notification error (cancelMatch decline):', err);
+    }
+  }
+
+  return saved;
 };
 
+/**
+ * Initiator reschedules a confirmed or awaiting match
+ */
 export const rescheduleMatch = async (
   matchId: string,
   userId: string,
   newDate: Date
 ): Promise<IMatch | null> => {
-  // Only initiator may reschedule
   const match = await Match.findById(matchId).exec();
   if (!match || match.initiator.toString() !== userId) return null;
-  if (match.status === 'Completed' || match.status === 'Cancelled') {
+  if (["Completed", "Cancelled"].includes(match.status)) {
     throw new Error('Cannot reschedule this match');
   }
+
   match.scheduledFor = newDate;
-  match.status = 'AwaitingConfirmation'; // need fresh confirmation
-  return match.save();
+  match.status = "AwaitingConfirmation";
+  const saved = await match.save();
+
+  // Notify opponent of reschedule
+  try {
+    const opponentId = match.opponent.toString();
+    const notif = await notifService.createNotification({
+      recipient: opponentId,
+      actor:     userId,
+      type:      'MatchRescheduled',        // reuse invite type or define 'MatchRescheduled'
+      payload:   { matchId: saved.id, newScheduledFor: saved.scheduledFor }
+    });
+    io.to(`user:${opponentId}`).emit('notification', notif);
+  } catch (err) {
+    console.error('Notification error (rescheduleMatch):', err);
+  }
+
+  return saved;
 };
 
 export const getMatchHistory = async (
@@ -121,11 +206,28 @@ export const completeMatch = async (
   if (match.initiator.toString() !== userId) {
     throw new Error('Only the initiator can complete the match');
   }
-  if (match.status !== 'Confirmed') {
+  if (match.status !== "Confirmed") {
     throw new Error('Only confirmed matches can be completed');
   }
+
   match.score  = data.score;
   match.result = data.result;
-  match.status = 'Completed';
-  return match.save();
+  match.status = "Completed";
+  const saved = await match.save();
+
+  // Notify opponent that match is completed and ready for review
+  try {
+    const opponentId = match.opponent.toString();
+    const notif = await notifService.createNotification({
+      recipient: opponentId,
+      actor:     userId,
+      type:      'MatchCompleted',
+      payload:   { matchId: saved.id }
+    });
+    io.to(`user:${opponentId}`).emit('notification', notif);
+  } catch (err) {
+    console.error('Notification error (completeMatch):', err);
+  }
+
+  return saved;
 };
