@@ -1,7 +1,9 @@
+// src/app.ts
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
 
@@ -17,14 +19,16 @@ import { errorHandler } from './middlewares/errorHandler';
 dotenv.config();
 
 const app: Application = express();
+// Middleware
 app.use(express.json());
 app.use(
   cors({
     origin: 'http://localhost:8080',
     credentials: true,
   })
-)
+);
 app.use(helmet());
+app.use(morgan('dev')); // HTTP request logging
 
 // Swagger setup
 const swaggerDefinition = {
@@ -38,7 +42,9 @@ const swaggerDefinition = {
   components: {
     securitySchemes: {
       bearerAuth: {
-        type: 'http', scheme: 'bearer', bearerFormat: 'JWT',
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
         description: 'JWT authorization header: Bearer <token>',
       },
     },
@@ -46,9 +52,11 @@ const swaggerDefinition = {
   security: [{ bearerAuth: [] }],
 };
 
-const swaggerOptions = { swaggerDefinition, apis: ['./src/routes/**/*.ts', './src/models/**/*.ts'] };
+const swaggerOptions = {
+  swaggerDefinition,
+  apis: ['./src/routes/**/*.ts', './src/models/**/*.ts'],
+};
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
-
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
 
 // Mount REST routes
@@ -60,12 +68,17 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/reviews', reviewsRoutes);
 
-app.get('/', (_req: Request, res: Response) => { res.send('Social4Sports API Running 🚀'); });
+// Health Check / Root
+app.get('/', (_req: Request, res: Response) => {
+  res.send('Social4Sports API Running 🚀');
+});
 
 // Example error route
 type AsyncHandler = (req: Request, res: Response) => Promise<void>;
 const wrap = (fn: AsyncHandler) => (req: Request, res: Response, next: any) => fn(req, res).catch(next);
-app.get('/boom', wrap(async () => { throw Object.assign(new Error('Boom!'), { status: 418 }); }));
+app.get('/boom', wrap(async () => {
+  throw Object.assign(new Error('Boom!'), { status: 418 });
+}));
 
 // Error handler
 app.use(errorHandler);

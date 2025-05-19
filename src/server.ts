@@ -2,6 +2,7 @@
 import http from 'http';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import express from 'express';
 import app from './app';
 import { initializeDatabase } from './config/initDatabase';
 import * as messageService from './services/messageService';
@@ -26,12 +27,14 @@ if (process.env.NODE_ENV !== 'test') {
       const server = http.createServer(app);
       const io = new SocketServer(server, {
         cors: { origin: '*', methods: ['GET', 'POST'] },
+        pingTimeout: 60000,
       });
 
       interface ChatSocket extends BaseSocket { userId: string }
       interface PrivateMessage { to: string; content: string }
       interface ReadReceipt { peerId: string }
 
+      // Socket auth middleware
       io.use((socket: BaseSocket, next) => {
         const token = (socket.handshake.auth as { token?: string }).token;
         if (!token) return next(new Error('Auth error'));
@@ -44,6 +47,7 @@ if (process.env.NODE_ENV !== 'test') {
         }
       });
 
+      // Real-time event handlers
       io.on('connection', (socket: BaseSocket) => {
         const chatSocket = socket as ChatSocket;
         chatSocket.join(chatSocket.userId);
@@ -56,6 +60,7 @@ if (process.env.NODE_ENV !== 'test') {
           });
           io.to(chatSocket.userId).to(msg.to).emit('new_message', saved);
         });
+
         chatSocket.on('typing', (peerId: string) =>
           io.to(peerId).emit('typing', { from: chatSocket.userId })
         );
@@ -69,8 +74,13 @@ if (process.env.NODE_ENV !== 'test') {
           });
           io.to(data.peerId).emit('message_read', { by: chatSocket.userId, count });
         });
+
+        socket.on('disconnect', (reason) => {
+          console.log(`Socket disconnected: ${socket.id} (reason: ${reason})`);
+        });
       });
 
+      // Start HTTP & WebSocket server
       server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
     })
     .catch((err) => {
@@ -79,4 +89,4 @@ if (process.env.NODE_ENV !== 'test') {
     });
 }
 
-export default app;
+// No export default from server.ts
