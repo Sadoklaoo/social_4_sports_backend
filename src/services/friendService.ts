@@ -1,5 +1,8 @@
+// src/services/friendService.ts
 import FriendRequest, { IFriendRequest, FriendRequestStatus } from '../models/friendRequest';
 import { Types } from 'mongoose';
+import * as notifService from './notificationService';
+import { io } from '../server';
 
 /**
  * Send a friend request
@@ -18,16 +21,28 @@ export const sendRequest = async (
       recipient: new Types.ObjectId(recipientId),
       status: FriendRequestStatus.Pending,
     });
+
+    // Notify recipient
+    try {
+      const notif = await notifService.createNotification({
+        recipient: recipientId,
+        actor: requesterId,
+        type: 'FriendRequest',
+        payload: { requestId: request.id, from: requesterId }
+      });
+      io.to(`user:${recipientId}`).emit('notification', notif);
+    } catch (err) {
+      console.error('Notification error (sendRequest):', err);
+    }
+
     return request;
   } catch (err: any) {
-    // Handle duplicate key error
     if (err.code === 11000) {
       throw Object.assign(
         new Error('Friend request already exists'),
         { status: 409 }
       );
     }
-    // rethrow other errors
     throw err;
   }
 };
@@ -42,12 +57,27 @@ export const respondRequest = async (
 ): Promise<IFriendRequest> => {
   const request = await FriendRequest.findById(requestId);
   if (!request) throw Object.assign(new Error('Request not found'), { status: 404 });
-  // Only recipient can accept/reject
   if (request.recipient.toString() !== userId) {
     throw Object.assign(new Error('Not authorized'), { status: 403 });
   }
   request.status = accept ? FriendRequestStatus.Accepted : FriendRequestStatus.Rejected;
   await request.save();
+
+  // Notify requester if accepted
+  if (accept) {
+    try {
+      const notif = await notifService.createNotification({
+        recipient: request.requester.toString(),
+        actor: userId,
+        type: 'FriendRequestAccepted',
+        payload: { requestId }
+      });
+      io.to(`user:${request.requester.toString()}`).emit('notification', notif);
+    } catch (err) {
+      console.error('Notification error (respondRequest):', err);
+    }
+  }
+
   return request;
 };
 
@@ -72,7 +102,6 @@ export const listSent = async (
     .populate('recipient', 'fullName email avatar')
     .exec();
 };
-
 
 /**
  * List confirmed friends for a user
@@ -100,7 +129,7 @@ export const listFriends = async (
   return requests.map(req => {
     const other = req.requester.id.toString() === userId ? req.recipient : req.requester;
     return {
-      _id: other.id.toString ? other.id.toString() : String(other.id),
+      _id: other.id.toString(),
       fullName: (other as any).fullName,
       email: (other as any).email,
       avatar: (other as any).avatar,

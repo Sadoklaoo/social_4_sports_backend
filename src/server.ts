@@ -2,12 +2,13 @@
 import http from 'http';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import express from 'express';
 import app from './app';
 import { initializeDatabase } from './config/initDatabase';
 import * as messageService from './services/messageService';
 import { Server as SocketServer, Socket as BaseSocket } from 'socket.io';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+
+export let io: SocketServer;  // exported instance
 
 dotenv.config();
 
@@ -25,7 +26,8 @@ if (process.env.NODE_ENV !== 'test') {
       await initializeDatabase();
 
       const server = http.createServer(app);
-      const io = new SocketServer(server, {
+      // assign to exported io
+      io = new SocketServer(server, {
         cors: { origin: '*', methods: ['GET', 'POST'] },
         pingTimeout: 60000,
       });
@@ -34,7 +36,7 @@ if (process.env.NODE_ENV !== 'test') {
       interface PrivateMessage { to: string; content: string }
       interface ReadReceipt { peerId: string }
 
-      // Socket auth middleware
+      // Authentication middleware for all namespaces
       io.use((socket: BaseSocket, next) => {
         const token = (socket.handshake.auth as { token?: string }).token;
         if (!token) return next(new Error('Auth error'));
@@ -47,40 +49,62 @@ if (process.env.NODE_ENV !== 'test') {
         }
       });
 
-      // Real-time event handlers
+      // Default namespace: join notification room
       io.on('connection', (socket: BaseSocket) => {
         const chatSocket = socket as ChatSocket;
+        // join personal room
+        socket.join(`user:${chatSocket.userId}`);
+      });
+
+      // Chat namespace for real-time messaging
+      const chatNs = io.of('/chat');
+      chatNs.use((socket, next) => {
+        // reuse auth from default namespace
+        const token = (socket.handshake.auth as { token?: string }).token;
+        if (!token) return next(new Error('Auth error'));
+        try {
+          const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+          (socket as ChatSocket).userId = payload.id as string;
+          next();
+        } catch {
+          next(new Error('Auth error'));
+        }
+      });
+
+      chatNs.on('connection', (socket: BaseSocket) => {
+        const chatSocket = socket as ChatSocket;
+        console.log(`New chat connection: ${chatSocket.id}`);
         chatSocket.join(chatSocket.userId);
 
+        // messaging events
         chatSocket.on('private_message', async (msg: PrivateMessage) => {
           const saved = await messageService.sendMessage({
             senderId: chatSocket.userId,
             recipientId: msg.to,
             content: msg.content,
           });
-          io.to(chatSocket.userId).to(msg.to).emit('new_message', saved);
+          chatNs.to(chatSocket.userId).to(msg.to).emit('new_message', saved);
         });
-
         chatSocket.on('typing', (peerId: string) =>
-          io.to(peerId).emit('typing', { from: chatSocket.userId })
+          chatNs.to(peerId).emit('typing', { from: chatSocket.userId })
         );
         chatSocket.on('stop_typing', (peerId: string) =>
-          io.to(peerId).emit('stop_typing', { from: chatSocket.userId })
+          chatNs.to(peerId).emit('stop_typing', { from: chatSocket.userId })
         );
         chatSocket.on('mark_read', async (data: ReadReceipt) => {
           const count = await messageService.markConversationRead({
             userId: chatSocket.userId,
             peerId: data.peerId,
           });
-          io.to(data.peerId).emit('message_read', { by: chatSocket.userId, count });
+          chatNs.to(data.peerId).emit('message_read', { by: chatSocket.userId, count });
         });
 
-        socket.on('disconnect', (reason) => {
-          console.log(`Socket disconnected: ${socket.id} (reason: ${reason})`);
+        chatSocket.on('disconnect', (reason) => {
+          console.log(`Socket disconnected: ${chatSocket.id} (reason: ${reason})`);
         });
       });
 
-      // Start HTTP & WebSocket server
+      // Start server
       server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
     })
     .catch((err) => {
@@ -89,4 +113,4 @@ if (process.env.NODE_ENV !== 'test') {
     });
 }
 
-// No export default from server.ts
+// no default export")]}
