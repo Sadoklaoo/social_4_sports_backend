@@ -25,10 +25,11 @@ export async function initializeDatabase(): Promise<void> {
     console.log('🛠  Seeding default admin user');
     const passwordHash = await bcrypt.hash(adminPassword, SALT_ROUNDS);
     const adminData: Partial<IUser> = {
+      fullName: 'Admin User',
       email: adminEmail,
       passwordHash,
       skillLevel: 'pro',
-      avatar: '',
+      avatar: '1.png',
       location: { type: 'Point', coordinates: [0, 0] },
     };
     await User.create(adminData);
