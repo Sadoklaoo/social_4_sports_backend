@@ -15,6 +15,7 @@ import messageRoutes from './routes/message';
 import friendsRoutes from './routes/friends';
 import reviewsRoutes from './routes/reviews';
 import notificationsRouter from './routes/notifications';
+import pushRouter from './routes/push';
 // Import error handler middleware
 import { errorHandler } from './middlewares/errorHandler';
 
@@ -70,6 +71,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/push', pushRouter);
 // Health Check / Root
 app.get('/', (_req: Request, res: Response) => {
   res.send('Social4Sports API Running 🚀');

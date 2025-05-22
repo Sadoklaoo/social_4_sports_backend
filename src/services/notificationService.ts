@@ -1,3 +1,4 @@
+import { pushQueue } from '../config/queue';
 import Notification, { INotification } from '../models/Notification';
 
 export async function createNotification(data: {
@@ -6,7 +7,17 @@ export async function createNotification(data: {
   type: INotification['type'];
   payload: any;
 }) {
-  return Notification.create(data);
+   const notif = Notification.create(data);
+     // enqueue a push job
+  await pushQueue.add('sendPush', {
+    notificationId: (await notif)._id.toString(),
+    recipient:      data.recipient,
+    type:           data.type,
+    payload:        data.payload,
+  });
+
+  return notif;
+
 }
 
 export async function getNotifications(userId: string) {
@@ -20,3 +31,5 @@ export async function markAsRead(notificationId: string) {
 export async function deleteNotification(notificationId: string) {
   return Notification.findByIdAndDelete(notificationId);
 }
+
+

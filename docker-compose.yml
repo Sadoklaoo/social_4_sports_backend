@@ -1,4 +1,4 @@
-
+version: '3.8'
 services:
   app:
     build: .
@@ -10,24 +10,53 @@ services:
       - MONGODB_URI=mongodb://admin:admin@mongo:27017/social4sports?authSource=admin
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - REDIS_URL=redis://redis:6379                            # ← Redis URL for the API
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}                    # ← for pushWorker if the API enqueues jobs
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_SUBJECT=${VAPID_SUBJECT}
     volumes:
       - .:/usr/src/app
     depends_on:
       - mongo
+      - redis                                              # ← ensure Redis starts first
     env_file:
       - .env
 
+  worker:
+    build: .
+    container_name: social4sports-push-worker
+    command: ["npm", "run", "worker"]
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:admin@mongo:27017/social4sports?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_SUBJECT=${VAPID_SUBJECT}
+    depends_on:
+      - mongo
+      - redis
+
+
   mongo:
     image: mongo:7.0
+    container_name: social4sports-mongo
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=admin
       - MONGO_INITDB_DATABASE=social4sports
     restart: always
     ports:
-      - '27017:27017'
+      - "27017:27017"
     volumes:
       - mongo-data:/data/db
+
+  redis:
+    image: redis:6-alpine
+    container_name: social4sports-redis
+    ports:
+      - "6379:6379"
+    restart: always
 
 volumes:
   mongo-data:

@@ -2,8 +2,8 @@
 const { io }     = require('socket.io-client');
 const fetch      = global.fetch || require('node-fetch');
 const API_URL    = 'http://localhost:3000';
-const ADMIN_JWT  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MjhhNWUyZThhMmUwODViZGVmNmRkZiIsImVtYWlsIjoiYWRtaW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc1MDc5MDksImV4cCI6MTc0NzUxMTUwOX0.gW-TodmLmxj8WTmcyvhfcNtWs2IXHYIF70O31eY05HE';
-const ALICE_JWT  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MjhhNmYwZThhMmUwODViZGVmNmRlNSIsImVtYWlsIjoiYWxpY2VAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc1MDc5MzgsImV4cCI6MTc0NzUxMTUzOH0.rM2c6q1seUlF2VZ5jCAOlcsZl-xKZoCrUQUdNnHRDT8';
+const ADMIN_JWT  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MjhhNWUyZThhMmUwODViZGVmNmRkZiIsImVtYWlsIjoiYWRtaW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc3NjI2ODgsImV4cCI6MTc0Nzc2NjI4OH0.o9OQn6h84aIpVLBxy8a30WJvVuKevZyDrjeURmGUoYg';
+const ALICE_JWT  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MjhhNmYwZThhMmUwODViZGVmNmRlNSIsImVtYWlsIjoiYWxpY2VAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc3NjQ4NTMsImV4cCI6MTc0Nzc2ODQ1M30.9y5AFZEHphySbZX6wbk78MRmiXGTCrrWT8ps1axXP6s';
 const ALICE_ID   = '6828a6f0e8a2e085bdef6de5';
 
 function startClient(name, token) {
@@ -44,12 +44,13 @@ function startClient(name, token) {
   console.log('[Admin EMIT private_message] Hello Alice!');
   admin.emit('private_message', { to: ALICE_ID, content: 'Hello Alice!' });
 
+  
   // wait for message round-trip
   await new Promise(r => setTimeout(r, 1000));
 
   // 4) Admin marks conversation as read
-  console.log('[Admin EMIT mark_read]');
-  admin.emit('mark_read', { peerId: ALICE_ID });
+  console.log('[Alice EMIT mark_read]');
+  alice.emit('mark_read', { peerId: ALICE_ID });
 
   // wait for receipt event
   await new Promise(r => setTimeout(r, 500));

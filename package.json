@@ -8,7 +8,14 @@
     "dev": "nodemon --watch src --exec ts-node src/server.ts",
     "lint": "eslint --ext .ts src",
     "type-check": "tsc --noEmit",
-    "test": "cross-env NODE_ENV=test MONGODB_URI_TEST=mongodb://127.0.0.1:27017/social4sports_test jest --config jest.config.js"
+    "test": "cross-env NODE_ENV=test MONGODB_URI_TEST=mongodb://127.0.0.1:27017/social4sports_test jest --config jest.config.js",
+    "worker": "node dist/workers/pushWorker.js",
+    "build": "tsc",
+    "prettier": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "swagger": "swagger-jsdoc -d swaggerDef.js -o swagger.json",
+    "swagger:serve": "swagger-ui-express swagger.json",
+    "swagger:watch": "nodemon --watch swaggerDef.js --exec \"node -e 'require(\"./swaggerDef.js\").generateSwagger()'\""
+    
   },
   "repository": {
     "type": "git",
@@ -34,6 +41,7 @@
     "@types/supertest": "^6.0.3",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@types/web-push": "^3.6.4",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "cross-env": "^7.0.3",
@@ -50,10 +58,12 @@
   "dependencies": {
     "@types/helmet": "^0.0.48",
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.52.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "helmet": "^8.1.0",
+    "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.0",
     "morgan": "^1.10.0",
@@ -64,6 +74,7 @@
     "socket.io-client": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "typeorm": "^0.3.21"
+    "typeorm": "^0.3.21",
+    "web-push": "^3.6.7"
   }
 }

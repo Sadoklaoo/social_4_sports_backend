@@ -1,20 +1,24 @@
-# Use an official Node.js runtime as the base image
-FROM node:16
+# 1) Build stage
+FROM node:20 AS builder
+WORKDIR /usr/src/app
+COPY package*.json tsconfig.json ./
+RUN npm install
+COPY src ./src
+# Compile all TS to JS in /usr/src/app/dist
+RUN npm run build
 
-# Set the working directory inside the container
+# 2) Production stage
+FROM node:20
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json (or yarn.lock)
+# Copy just the compiled JS and package.json for production
 COPY package*.json ./
+RUN npm install --only=production
 
-# Install dependencies
-RUN npm install
+COPY --from=builder /usr/src/app/dist ./dist
 
-# Copy the rest of your application
-COPY . .
-
-# Expose the port that your app will run on
 EXPOSE 3000
+ENV NODE_ENV=production
 
-# Command to run your app
-CMD ["npm", "start"]
+# default to running the API
+CMD ["npm","start"]
