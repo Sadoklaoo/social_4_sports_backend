@@ -3,13 +3,12 @@
 ![Node.js](https://img.shields.io/badge/Node.js-18.x-green?logo=node.js)  
 ![Express.js](https://img.shields.io/badge/Express.js-4.x-black?logo=express)  
 ![MongoDB](https://img.shields.io/badge/MongoDB-6.x-green?logo=mongodb)  
-![Redis](https://img.shields.io/badge/Redis-7.x-red?logo=redis)  
+![Socket.io](https://img.shields.io/badge/Socket.io-WebSockets-lightgrey?logo=socket.io)  
 ![JWT](https://img.shields.io/badge/JWT-Auth-blue?logo=jsonwebtokens)  
 ![Swagger](https://img.shields.io/badge/Swagger-OpenAPI-brightgreen?logo=swagger)  
 ![License](https://img.shields.io/badge/license-MIT-brightgreen)
 
-Social4Sports is a social sports platform that connects players based on skill level and location. This repository contains the backend API built using Node.js, Express.js, MongoDB, and Redis.
-
+Social4Sports is a social sports platform that connects players based on skill level and location. This repository contains the backend API built using Node.js, Express.js, MongoDB, and Socket.io for real-time communication.
 
 ## 🚀 Features
 
@@ -18,6 +17,7 @@ Social4Sports is a social sports platform that connects players based on skill l
 ✅ **Player Matchmaking** (Find opponents by skill & proximity)  
 ✅ **Friend System** (Add/remove friends, manage requests)  
 ✅ **Real-time Messaging** (WebSockets via Socket.io)  
+✅ **Real-time Notifications** (Socket.io events for instant updates)  
 ✅ **Match Scheduling & Tracking** (Schedule, confirm, reschedule, cancel, history)  
 ✅ **Review & Rating System** (Post-match feedback)
 
@@ -27,9 +27,7 @@ Social4Sports is a social sports platform that connects players based on skill l
 - **Database**: MongoDB & Mongoose ODM  
 - **Authentication**: JWT (JSON Web Tokens)  
 - **Real-time**: Socket.io (WebSockets)  
-- **Caching & Queues**: Redis & BullMQ  
 - **API Docs**: Swagger (OpenAPI) via swagger-jsdoc & swagger-ui-express
-
 
 ## 📌 Installation & Setup
 
@@ -51,14 +49,13 @@ PORT=3000
 MONGODB_URI=mongodb://<user>:<pass>@localhost:27017/social4sports?authSource=admin
 JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=1h
-REDIS_URL=redis://localhost:6379
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=admin123
 ```
 
-### 4️⃣ Start Services via Docker Compose (optional)
+### 4️⃣ Start MongoDB via Docker (optional)
 ```sh
-docker compose up -d mongo redis
+docker compose up -d mongo
 ```
 
 ### 5️⃣ Start the Server
@@ -70,7 +67,7 @@ or with **nodemon** for live reloading:
 npm run dev
 ```
 
-# 📡 API Endpoints
+## 📡 API Endpoints
 
 This document lists all available API endpoints for the Social4Sports Backend.
 
@@ -109,13 +106,20 @@ This document lists all available API endpoints for the Social4Sports Backend.
 
 ---
 
+## 🔔 Notifications
+
+| Method | Endpoint                          | Description                       |
+| ------ | --------------------------------- | --------------------------------- |
+| GET    | `/api/notifications`             | List all notifications            |
+| PATCH  | `/api/notifications/:id/read`    | Mark a notification as read       |
+| DELETE | `/api/notifications/:id`         | Delete a notification             |
+
+---
+
 ## 🔍 Example Request
 
 ```bash
-curl -X POST \
-  http://localhost:3000/api/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{ "email": "alice@example.com", "password": "secret123" }'
+curl -X POST   http://localhost:3000/api/auth/login   -H 'Content-Type: application/json'   -d '{ "email": "alice@example.com", "password": "secret123" }'
 ```
 
 ## 🔗 Authentication
@@ -125,7 +129,6 @@ All protected endpoints require a Bearer JWT in the `Authorization` header:
 ```
 Authorization: Bearer <accessToken>
 ```
-
 
 ## 🛠️ Contributing
 
@@ -139,4 +142,3 @@ Authorization: Bearer <accessToken>
 ## 🐝 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
