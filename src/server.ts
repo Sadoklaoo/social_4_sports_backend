@@ -1,4 +1,3 @@
-// src/server.ts
 import http from 'http';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
@@ -52,8 +51,21 @@ if (process.env.NODE_ENV !== 'test') {
       // Default namespace: join notification room
       io.on('connection', (socket: BaseSocket) => {
         const chatSocket = socket as ChatSocket;
-        // join personal room
+        console.log(`New user connected: ${chatSocket.userId}`);
+        // join personal room for notifications
         socket.join(`user:${chatSocket.userId}`);
+
+        // Notification event: emit to specific user
+        socket.on('notify', (data: { to: string; message: string }) => {
+          const { to, message } = data;
+          io.to(`user:${to}`).emit('notification', {
+            from: chatSocket.userId,
+            message,
+          });
+        });
+
+        // Optional: Emit a test notification when user connects
+        socket.emit('notification', { from: 'System', message: 'Welcome to Social4Sports!' });
       });
 
       // Chat namespace for real-time messaging
@@ -113,4 +125,4 @@ if (process.env.NODE_ENV !== 'test') {
     });
 }
 
-// no default export")]}
+// no default export

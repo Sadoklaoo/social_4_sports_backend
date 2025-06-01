@@ -28,7 +28,7 @@ router.get('/', requireAuth, wrap(listNotifications));
 /**
  * @openapi
  * /api/notifications/{id}/read:
- *   post:
+ *   patch:
  *     summary: Mark a notification as read
  *     tags: [Notifications]
  *     security:
@@ -42,7 +42,7 @@ router.get('/', requireAuth, wrap(listNotifications));
  *       204:
  *         description: No Content
  */
-router.post('/:id/read', requireAuth, wrap(markRead));
+router.patch('/:id/read', requireAuth, wrap(markRead));
 
 /**
  * @openapi
@@ -60,6 +60,7 @@ router.post('/:id/read', requireAuth, wrap(markRead));
  *     responses:
  *       204:
  *         description: No Content
- */ 
+ */
 router.delete('/:id', requireAuth, wrap(deleteNotif));
+
 export default router;
